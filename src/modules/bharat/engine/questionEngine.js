@@ -1,8 +1,12 @@
 import { getByCategories } from "../../../data/bharat";
 import { haversineDistanceKm, isPointInState } from "./geo";
 
-// Point-based categories (everything except polygon-tested ones like "state") are scored
-// by great-circle distance to the target; states are scored by exact boundary containment.
+// Real-world border landmarks (Kangchenjunga, Nathu La, ...) sit exactly on or past India's
+// actual state boundary — their own listed coordinate can fall just outside every state
+// polygon, since that's genuinely where the real border runs. Pure state-membership would
+// then mark even a pixel-perfect click on the correct peak as wrong, which is worse than
+// what it replaced. So this is a click that lands in the right state OR close to the
+// location's own coordinate — either is accepted, not one replacing the other.
 const DISTANCE_THRESHOLD_KM = { easy: 120, medium: 70, hard: 35 };
 
 // `subcategory`/`tag` are fixed narrowing filters set at launch time (e.g. a "Tiger
@@ -20,10 +24,15 @@ export function getQuestionPool(mode, { difficulty, region, subcategory, tag } =
   return pool;
 }
 
+// Every category (including a plain "state" question, where it's just itself) accepts a
+// click anywhere inside the right state — that's what these exams actually reward: knowing
+// Kangchenjunga is in Sikkim, not landing a pixel-perfect click on its summit's exact GPS
+// coordinate. The distance fallback exists for border landmarks whose own coordinate can
+// legitimately sit just outside every state polygon (see note above).
 export function checkAnswer(location, clickPoint) {
-  if (location.category === "state") {
-    return isPointInState(clickPoint, location.name);
-  }
+  const stateNames = location.category === "state" ? [location.name] : location.states;
+  if (stateNames.some((name) => isPointInState(clickPoint, name))) return true;
+
   const thresholdKm = DISTANCE_THRESHOLD_KM[location.difficulty] ?? 80;
   return haversineDistanceKm(location.coordinates, clickPoint) <= thresholdKm;
 }

@@ -6,9 +6,20 @@ import MapCanvas from "../map/MapCanvas";
  * Generic "search everything, preview a result" overlay — shared across atlas modules.
  * `search` (query, opts) => Location[] and `mapGeo` are supplied by the caller (see
  * modules/bharat/components/BharatSearchOverlay.jsx-equivalent wiring), so this component
- * has no knowledge of which module's data or geography it's showing.
+ * has no knowledge of which module's data or geography it's showing. `withRevealPath`
+ * (optional, defaults to identity) is the same module-specific helper GameScreen uses to
+ * attach an approximate multi-state connecting line — passed in rather than imported, so
+ * this stays geography-agnostic like everything else here.
  */
-export default function ExploreOverlay({ open, onClose, initialLocation = null, search, mapGeo, categoryLabels = {} }) {
+export default function ExploreOverlay({
+  open,
+  onClose,
+  initialLocation = null,
+  search,
+  mapGeo,
+  categoryLabels = {},
+  withRevealPath = (location) => location,
+}) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState(null);
 
@@ -95,9 +106,9 @@ export default function ExploreOverlay({ open, onClose, initialLocation = null, 
                       mapGeo={mapGeo}
                       focusCenter={[selected.coordinates.lng, selected.coordinates.lat]}
                       focusZoom={selected.category === "state" ? 2.2 : 4}
-                      highlightStateName={selected.category === "state" ? selected.name : null}
+                      highlightStateNames={selected.states}
                       highlightStatus="correct"
-                      revealLocation={selected.category !== "state" ? selected : null}
+                      revealLocation={withRevealPath(selected)}
                     />
                   </div>
                   <div>

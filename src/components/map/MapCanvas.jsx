@@ -1,9 +1,16 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { ComposableMap, ZoomableGroup, Geographies, Geography, Marker } from "react-simple-maps";
-import { geoPath } from "d3-geo";
+import { geoPath, geoCentroid } from "d3-geo";
 import { motion } from "framer-motion";
 
 const DEFAULT_ZOOM_STATE = { center: [82.8, 22.5], zoom: 1 };
+
+// Below this rendered size (in the projection's own viewBox units), a fill color has no
+// visible pixels to show at all — e.g. Lakshadweep projects to ~0.86 x 0.3 units on
+// Bharat's map, versus its next-smallest neighbor Chandigarh at ~3.2 x 2.3 (small, but a
+// few real pixels). Anything under this threshold gets a small permanent reference dot so
+// there's an actual visible target to click, not just an invisible polygon.
+const MIN_VISIBLE_DIMENSION = 2.5;
 
 /**
  * Generic boundary-map renderer, shared across every atlas module — it has no
@@ -25,8 +32,8 @@ export default function MapCanvas({
   mapGeo,
   onMapClick,
   disabled = false,
-  highlightStateName = null,
-  highlightStatus = null, // "correct" | "wrong" | null — tints the highlighted region
+  highlightStateNames = null, // string[] | null — every state this location's answer touches
+  highlightStatus = null, // "correct" | "wrong" | null — tints the highlighted region(s)
   revealLocation = null, // point-based location to pin once an answer has been submitted
   userClickPoint = null, // where the user actually clicked, shown on a wrong answer
   focusCenter = null, // [lng, lat] — initial ZoomableGroup center, e.g. to "jump to" a search result
@@ -43,6 +50,18 @@ export default function MapCanvas({
   // `path`) lines up exactly with the boundaries and markers — no separate coordinate math.
   const pathGenerator = useMemo(() => geoPath(projection), [projection]);
   const routeCoordinates = revealLocation?.path?.map((p) => [p.lng, p.lat]);
+
+  const tooSmallToSeeMarkers = useMemo(() => {
+    return getStateFeatures()
+      .map((f) => {
+        const [[x0, y0], [x1, y1]] = pathGenerator.bounds(f);
+        if (Math.max(x1 - x0, y1 - y0) >= MIN_VISIBLE_DIMENSION) return null;
+        const [lng, lat] = geoCentroid(f);
+        return { name: f.properties.name, lng, lat };
+      })
+      .filter(Boolean);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathGenerator, getStateFeatures]);
 
   const handleClick = useCallback(
     (event) => {
@@ -88,7 +107,7 @@ export default function MapCanvas({
           <Geographies geography={{ type: "FeatureCollection", features: getStateFeatures() }}>
             {({ geographies }) =>
               geographies.map((geo) => {
-                const isHighlighted = geo.properties.name === highlightStateName;
+                const isHighlighted = highlightStateNames?.includes(geo.properties.name) ?? false;
                 const highlightFill =
                   highlightStatus === "correct"
                     ? "var(--color-correct)"
@@ -125,6 +144,12 @@ export default function MapCanvas({
               })
             }
           </Geographies>
+
+          {tooSmallToSeeMarkers.map((m) => (
+            <Marker key={m.name} coordinates={[m.lng, m.lat]}>
+              <circle r={2.5} fill="var(--color-brand-400)" stroke="var(--color-route-halo)" strokeWidth={0.75} />
+            </Marker>
+          ))}
 
           {routeCoordinates && (
             <>

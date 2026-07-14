@@ -8,7 +8,7 @@ import ExploreOverlay from "../../components/search/ExploreOverlay";
 import { MODES } from "./engine/modes";
 import { getState, recordDailyChallengeCompletion } from "./engine/storage";
 import { getDailyChallengeDateKey, getDailyChallengeQuestions, getRandomQuestion } from "./engine/dailyChallenge";
-import { BHARAT_MAP_GEO } from "./engine/geo";
+import { BHARAT_MAP_GEO, withRevealPath } from "./engine/geo";
 import { search } from "../../data/bharat";
 
 const FADE = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.15 } };
@@ -142,6 +142,7 @@ export default function BharatApp({ onExit }) {
         search={search}
         mapGeo={BHARAT_MAP_GEO}
         categoryLabels={CATEGORY_LABELS}
+        withRevealPath={withRevealPath}
       />
       <StatsDashboard open={statsOpen} onClose={() => setStatsOpen(false)} modes={MODES} getState={getState} />
     </>

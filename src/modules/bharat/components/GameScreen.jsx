@@ -6,7 +6,7 @@ import StatsTriggerButton from "../../../components/game/StatsTriggerButton";
 import FilterPanel from "../../../components/filters/FilterPanel";
 import SearchTriggerButton from "../../../components/search/SearchTriggerButton";
 import { useGameSession } from "../hooks/useGameSession";
-import { BHARAT_MAP_GEO } from "../engine/geo";
+import { BHARAT_MAP_GEO, withRevealPath } from "../engine/geo";
 import { getByIds } from "../../../data/bharat";
 
 /** `topicFilter`/`title` come from a Categories chip (e.g. Forest Mode narrowed to just
@@ -53,12 +53,16 @@ export default function GameScreen({ modeId, topicFilter, title, onBack, onOpenS
           mapGeo: BHARAT_MAP_GEO,
           onMapClick: submitClick,
           disabled: reviewingPrevious || phase !== "asking",
-          highlightStateName: showFeedbackCard && displayedQuestion.category === "state" ? displayedQuestion.name : null,
+          // Every state this location's answer touches gets highlighted — for a plain
+          // "state" question that's just itself; for a multi-state river/range, all of them.
+          highlightStateNames: showFeedbackCard ? displayedQuestion.states : null,
           highlightStatus: showFeedbackCard ? (displayedResult.isCorrect ? "correct" : "wrong") : null,
           // Every category gets the pinpoint marker, including "state" — a polygon tint
           // alone is invisible for tiny union territories like Lakshadweep or Chandigarh,
           // so the marker is what actually shows the user where the right answer was.
-          revealLocation: showFeedbackCard ? displayedQuestion : null,
+          // withRevealPath adds an approximate connecting line for multi-state locations
+          // that don't already have a real hand-curated one (rivers do; ranges don't yet).
+          revealLocation: showFeedbackCard ? withRevealPath(displayedQuestion) : null,
           userClickPoint: showFeedbackCard ? displayedResult.clickPoint : null,
           ariaLabel: "Map of India",
         }}

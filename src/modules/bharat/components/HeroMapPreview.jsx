@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapCanvas from "../../../components/map/MapCanvas";
 import { getById } from "../../../data/bharat";
-import { BHARAT_MAP_GEO } from "../engine/geo";
+import { BHARAT_MAP_GEO, withRevealPath } from "../engine/geo";
 
 // A handful of iconic, instantly-recognizable locations across different modes — this is
 // the real MapCanvas (pan/zoom both work), just with no active question, cycling through
@@ -25,8 +25,8 @@ export default function HeroMapPreview() {
       <MapCanvas
         mapGeo={BHARAT_MAP_GEO}
         disabled
-        revealLocation={current && current.category !== "state" ? current : null}
-        highlightStateName={current?.category === "state" ? current.name : null}
+        revealLocation={current ? withRevealPath(current) : null}
+        highlightStateNames={current?.states ?? null}
         highlightStatus="correct"
         ariaLabel="Preview map of India"
       />

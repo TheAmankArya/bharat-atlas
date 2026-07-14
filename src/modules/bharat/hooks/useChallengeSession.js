@@ -14,23 +14,33 @@ export function useChallengeSession(questions, { modeId = "challenge", onComplet
   const [result, setResult] = useState(null); // { isCorrect, clickPoint }
   const [outcomes, setOutcomes] = useState([]);
 
+  // One-step-back review of the question+result just replaced by "Next question" — purely
+  // read-only, an overlay on top of the live index/phase/result rather than a change to them.
+  const [previous, setPrevious] = useState(null); // { index, result } | null
+  const [reviewingPrevious, setReviewingPrevious] = useState(false);
+
   const question = questions[index] ?? null;
   const isComplete = index >= questions.length;
 
   const submitClick = useCallback(
     (point) => {
-      if (phase !== "asking" || !question) return;
+      if (reviewingPrevious || phase !== "asking" || !question) return;
       const isCorrect = checkAnswer(question, point);
       recordAttempt({ modeId, locationId: question.id, isCorrect });
       setResult({ isCorrect, clickPoint: point });
       setPhase("feedback");
       (isCorrect ? playCorrectSound : playWrongSound)();
     },
-    [phase, question, modeId]
+    [reviewingPrevious, phase, question, modeId]
   );
 
   const advance = useCallback(
     (outcome) => {
+      if (reviewingPrevious) {
+        setReviewingPrevious(false);
+        return;
+      }
+      setPrevious(result ? { index, result } : null);
       setOutcomes((prev) => {
         const updated = [...prev, outcome];
         if (index + 1 >= questions.length) onComplete?.(updated);
@@ -40,11 +50,16 @@ export function useChallengeSession(questions, { modeId = "challenge", onComplet
       setPhase("asking");
       setResult(null);
     },
-    [index, questions.length, onComplete]
+    [index, questions.length, onComplete, result, reviewingPrevious]
   );
 
   const next = useCallback(() => advance(result?.isCorrect ? "correct" : "wrong"), [advance, result]);
   const skip = useCallback(() => advance("skipped"), [advance]);
+
+  const showPrevious = useCallback(() => {
+    if (!previous) return;
+    setReviewingPrevious(true);
+  }, [previous]);
 
   return {
     question,
@@ -57,5 +72,10 @@ export function useChallengeSession(questions, { modeId = "challenge", onComplet
     submitClick,
     next,
     skip,
+    previousQuestion: previous ? questions[previous.index] : null,
+    previousResult: previous?.result ?? null,
+    previousIndex: previous?.index ?? null,
+    reviewingPrevious,
+    showPrevious,
   };
 }

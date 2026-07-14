@@ -33,6 +33,12 @@ export function useGameSession(initialModeId, topicFilter = null) {
   const [phase, setPhase] = useState("asking"); // "asking" | "feedback"
   const [result, setResult] = useState(null); // { isCorrect, clickPoint }
 
+  // One-step-back review: the question+result just replaced by "Next question", kept purely
+  // for read-only display. `reviewingPrevious` is an overlay on top of the live question/
+  // phase/result above — it doesn't touch them, so leaving the review just un-hides them.
+  const [previous, setPrevious] = useState(null); // { question, result } | null
+  const [reviewingPrevious, setReviewingPrevious] = useState(false);
+
   const advance = useCallback(
     (excludeId) => {
       const nextQuestion = pickNextQuestion(pool, { excludeId, perLocationStats: storageState.perLocation });
@@ -52,13 +58,17 @@ export function useGameSession(initialModeId, topicFilter = null) {
       return;
     }
     advance(null);
+    // A mode/filter/topic switch starts a fresh stream — a review of the old one wouldn't
+    // make sense sitting alongside it.
+    setPrevious(null);
+    setReviewingPrevious(false);
     // Only re-pick when the active mode/filters/topic change, not on every stats update.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode.id, filters.difficulty, filters.region, topicFilter?.subcategory, topicFilter?.tag]);
 
   const submitClick = useCallback(
     (point) => {
-      if (phase !== "asking" || !question) return;
+      if (reviewingPrevious || phase !== "asking" || !question) return;
       const isCorrect = checkAnswer(question, point);
       const updated = recordAttempt({ modeId: mode.id, locationId: question.id, isCorrect });
       setStorageState(updated);
@@ -66,12 +76,22 @@ export function useGameSession(initialModeId, topicFilter = null) {
       setPhase("feedback");
       (isCorrect ? playCorrectSound : playWrongSound)();
     },
-    [phase, question, mode.id]
+    [reviewingPrevious, phase, question, mode.id]
   );
 
   const next = useCallback(() => {
+    if (reviewingPrevious) {
+      setReviewingPrevious(false);
+      return;
+    }
+    setPrevious(result ? { question, result } : null);
     advance(question?.id ?? null);
-  }, [advance, question]);
+  }, [advance, question, result, reviewingPrevious]);
+
+  const showPrevious = useCallback(() => {
+    if (!previous) return;
+    setReviewingPrevious(true);
+  }, [previous]);
 
   const updateFilters = useCallback((patch) => {
     const updated = persistFilters(patch);
@@ -88,6 +108,9 @@ export function useGameSession(initialModeId, topicFilter = null) {
     setFilters: updateFilters,
     submitClick,
     next,
+    previous,
+    reviewingPrevious,
+    showPrevious,
     poolSize: pool.length,
     overallStats: storageState.overallStats,
     modeStats: storageState.perMode[mode.id],

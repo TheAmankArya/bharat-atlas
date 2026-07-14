@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
 
-/** `getByIds` (locationId[]) => Location[] is supplied by the caller's own data module —
- * this card has no knowledge of which atlas's dataset `location` came from. */
-export default function FeedbackCard({ location, isCorrect, onNext, getByIds = () => [] }) {
+/**
+ * `getByIds` (locationId[]) => Location[] is supplied by the caller's own data module —
+ * this card has no knowledge of which atlas's dataset `location` came from.
+ *
+ * `onPrevious` (optional) shows a "Previous question" button that steps back exactly one
+ * question for read-only review — reviewing never re-runs scoring, it just re-displays a
+ * past result. `isReviewing` flips the primary button to "Back to current question" and
+ * hides `onPrevious` (only one step back is supported, so there's nothing further to see).
+ */
+export default function FeedbackCard({ location, isCorrect, onNext, getByIds = () => [], onPrevious, isReviewing = false }) {
   if (!location) return null;
   const related = getByIds(location.relatedIds ?? []);
 
@@ -12,6 +19,12 @@ export default function FeedbackCard({ location, isCorrect, onNext, getByIds = (
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col gap-3 rounded-2xl border border-line bg-surface-raised p-5 shadow-sm dark:border-white/10 dark:bg-slate-900"
     >
+      {isReviewing && (
+        <p className="inline-flex w-fit items-center gap-1.5 rounded-full bg-surface px-2.5 py-1 text-xs font-medium text-ink-muted dark:bg-white/10 dark:text-white/50">
+          ← Reviewing previous question
+        </p>
+      )}
+
       <div className="flex items-center gap-2">
         <span
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white ${
@@ -65,13 +78,24 @@ export default function FeedbackCard({ location, isCorrect, onNext, getByIds = (
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={onNext}
-        className="mt-1 self-start rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
-      >
-        Next question
-      </button>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        {!isReviewing && onPrevious && (
+          <button
+            type="button"
+            onClick={onPrevious}
+            className="self-start rounded-full border border-line px-5 py-2 text-sm font-semibold text-ink transition-colors hover:bg-surface dark:border-white/15 dark:text-white dark:hover:bg-white/10"
+          >
+            ← Previous question
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onNext}
+          className="self-start rounded-full bg-brand-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
+        >
+          {isReviewing ? "Back to current question →" : "Next question"}
+        </button>
+      </div>
     </motion.div>
   );
 }

@@ -9,9 +9,28 @@ import { getByIds } from "../../../data/bharat";
 /** Drives a fixed, ordered question set (Daily Challenge / Random Question) through to a
  * completion summary — the same visual language as GameScreen, but a finite session. */
 export default function ChallengeScreen({ questions, modeId, title, onBack, onComplete, onNavigateHome }) {
-  const { question, phase, result, index, total, isComplete, outcomes, submitClick, next, skip } =
-    useChallengeSession(questions, { modeId, onComplete });
+  const {
+    question,
+    phase,
+    result,
+    index,
+    total,
+    isComplete,
+    outcomes,
+    submitClick,
+    next,
+    skip,
+    previousQuestion,
+    previousResult,
+    previousIndex,
+    reviewingPrevious,
+    showPrevious,
+  } = useChallengeSession(questions, { modeId, onComplete });
   const isFeedback = phase === "feedback" && question && result;
+  const showFeedbackCard = reviewingPrevious || isFeedback;
+  const displayedQuestion = reviewingPrevious ? previousQuestion : question;
+  const displayedResult = reviewingPrevious ? previousResult : result;
+  const displayedIndex = reviewingPrevious ? previousIndex : index;
 
   if (isComplete) {
     const correctCount = outcomes.filter((o) => o === "correct").length;
@@ -47,23 +66,30 @@ export default function ChallengeScreen({ questions, modeId, title, onBack, onCo
       onBack={onBack}
       brandName="Bharat Atlas"
       onNavigateHome={onNavigateHome}
-      subtitle={`${title} · ${index + 1} of ${total}`}
+      subtitle={`${title} · ${displayedIndex + 1} of ${total}${reviewingPrevious ? " (reviewing)" : ""}`}
     >
       <MapWithPanel
         mapProps={{
           mapGeo: BHARAT_MAP_GEO,
           onMapClick: submitClick,
-          disabled: phase !== "asking",
-          highlightStateName: isFeedback && question.category === "state" ? question.name : null,
-          highlightStatus: isFeedback ? (result.isCorrect ? "correct" : "wrong") : null,
-          revealLocation: isFeedback && question.category !== "state" ? question : null,
-          userClickPoint: isFeedback ? result.clickPoint : null,
+          disabled: reviewingPrevious || phase !== "asking",
+          highlightStateName: showFeedbackCard && displayedQuestion.category === "state" ? displayedQuestion.name : null,
+          highlightStatus: showFeedbackCard ? (displayedResult.isCorrect ? "correct" : "wrong") : null,
+          revealLocation: showFeedbackCard && displayedQuestion.category !== "state" ? displayedQuestion : null,
+          userClickPoint: showFeedbackCard ? displayedResult.clickPoint : null,
           ariaLabel: "Map of India",
         }}
       >
-        {phase === "asking" && <QuestionPanel location={question} onSkip={skip} />}
-        {isFeedback && (
-          <FeedbackCard location={question} isCorrect={result.isCorrect} onNext={next} getByIds={getByIds} />
+        {phase === "asking" && !reviewingPrevious && <QuestionPanel location={question} onSkip={skip} />}
+        {showFeedbackCard && (
+          <FeedbackCard
+            location={displayedQuestion}
+            isCorrect={displayedResult.isCorrect}
+            onNext={next}
+            getByIds={getByIds}
+            onPrevious={previousQuestion ? showPrevious : undefined}
+            isReviewing={reviewingPrevious}
+          />
         )}
       </MapWithPanel>
     </AppShell>

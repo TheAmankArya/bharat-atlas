@@ -13,9 +13,25 @@ import { getByIds } from "../../../data/bharat";
  * "Tiger Reserves") — omit both for a plain mode launch, where the subtitle falls back to
  * the mode's own label. */
 export default function GameScreen({ modeId, topicFilter, title, onBack, onOpenSearch, onOpenStats, onNavigateHome }) {
-  const { mode, question, phase, result, filters, setFilters, submitClick, next, overallStats, poolSize } =
-    useGameSession(modeId, topicFilter);
+  const {
+    mode,
+    question,
+    phase,
+    result,
+    filters,
+    setFilters,
+    submitClick,
+    next,
+    previous,
+    reviewingPrevious,
+    showPrevious,
+    overallStats,
+    poolSize,
+  } = useGameSession(modeId, topicFilter);
   const isFeedback = phase === "feedback" && question && result;
+  const showFeedbackCard = reviewingPrevious || isFeedback;
+  const displayedQuestion = reviewingPrevious ? previous.question : question;
+  const displayedResult = reviewingPrevious ? previous.result : result;
 
   return (
     <AppShell
@@ -36,17 +52,24 @@ export default function GameScreen({ modeId, topicFilter, title, onBack, onOpenS
         mapProps={{
           mapGeo: BHARAT_MAP_GEO,
           onMapClick: submitClick,
-          disabled: phase !== "asking",
-          highlightStateName: isFeedback && question.category === "state" ? question.name : null,
-          highlightStatus: isFeedback ? (result.isCorrect ? "correct" : "wrong") : null,
-          revealLocation: isFeedback && question.category !== "state" ? question : null,
-          userClickPoint: isFeedback ? result.clickPoint : null,
+          disabled: reviewingPrevious || phase !== "asking",
+          highlightStateName: showFeedbackCard && displayedQuestion.category === "state" ? displayedQuestion.name : null,
+          highlightStatus: showFeedbackCard ? (displayedResult.isCorrect ? "correct" : "wrong") : null,
+          revealLocation: showFeedbackCard && displayedQuestion.category !== "state" ? displayedQuestion : null,
+          userClickPoint: showFeedbackCard ? displayedResult.clickPoint : null,
           ariaLabel: "Map of India",
         }}
       >
-        {phase === "asking" && <QuestionPanel location={question} onSkip={next} />}
-        {isFeedback && (
-          <FeedbackCard location={question} isCorrect={result.isCorrect} onNext={next} getByIds={getByIds} />
+        {phase === "asking" && !reviewingPrevious && <QuestionPanel location={question} onSkip={next} />}
+        {showFeedbackCard && (
+          <FeedbackCard
+            location={displayedQuestion}
+            isCorrect={displayedResult.isCorrect}
+            onNext={next}
+            getByIds={getByIds}
+            onPrevious={previous ? showPrevious : undefined}
+            isReviewing={reviewingPrevious}
+          />
         )}
       </MapWithPanel>
     </AppShell>

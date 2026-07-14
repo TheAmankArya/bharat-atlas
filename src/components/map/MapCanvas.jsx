@@ -13,10 +13,13 @@ const DEFAULT_ZOOM_STATE = { center: [82.8, 22.5], zoom: 1 };
  * src/modules/bharat/engine/geo.js for Bharat's instance). A future Bihar module would
  * pass its own district-level geo the same way, with zero changes needed here.
  *
- * Click detection works by asking the SVG root for its screen->local-space CTM
- * (getScreenCTM), which already accounts for the ZoomableGroup's pan/zoom transform,
- * then inverting that point through `mapGeo.projection` to get real lat/lng — so answer
- * checking is identical regardless of current zoom/pan state.
+ * Click detection asks the ZoomableGroup's own inner transformed `<g>` for its
+ * screen->local-space CTM (getScreenCTM) — react-simple-maps forwards a `ref` on
+ * ZoomableGroup straight to that `<g transform="translate(...) scale(...)">` node, so its
+ * CTM already bakes in the CURRENT pan/zoom. Reading the CTM from the outer `<svg>` instead
+ * would miss that inner transform entirely: it's a no-op at the exact default zoom/center
+ * (so desktop testing never caught it), but wrong the moment a user pans or pinch-zooms —
+ * which is exactly what real touchscreen use does constantly and a mouse rarely does.
  */
 export default function MapCanvas({
   mapGeo,
@@ -32,6 +35,7 @@ export default function MapCanvas({
 }) {
   const { getStateFeatures, projection, width, height } = mapGeo;
   const svgRef = useRef(null);
+  const zoomedGroupRef = useRef(null);
   const [zoomState, setZoomState] = useState(
     focusCenter ? { center: focusCenter, zoom: focusZoom ?? 4 } : DEFAULT_ZOOM_STATE
   );
@@ -44,9 +48,10 @@ export default function MapCanvas({
     (event) => {
       if (disabled || !onMapClick) return;
       const svg = svgRef.current;
-      if (!svg) return;
+      const zoomedGroup = zoomedGroupRef.current;
+      if (!svg || !zoomedGroup) return;
 
-      const ctm = svg.getScreenCTM();
+      const ctm = zoomedGroup.getScreenCTM();
       if (!ctm) return;
 
       const point = svg.createSVGPoint();
@@ -73,6 +78,7 @@ export default function MapCanvas({
         aria-label={ariaLabel}
       >
         <ZoomableGroup
+          ref={zoomedGroupRef}
           center={zoomState.center}
           zoom={zoomState.zoom}
           minZoom={1}

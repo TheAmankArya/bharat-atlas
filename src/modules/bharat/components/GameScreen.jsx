@@ -55,7 +55,10 @@ export default function GameScreen({ modeId, topicFilter, title, onBack, onOpenS
           disabled: reviewingPrevious || phase !== "asking",
           highlightStateName: showFeedbackCard && displayedQuestion.category === "state" ? displayedQuestion.name : null,
           highlightStatus: showFeedbackCard ? (displayedResult.isCorrect ? "correct" : "wrong") : null,
-          revealLocation: showFeedbackCard && displayedQuestion.category !== "state" ? displayedQuestion : null,
+          // Every category gets the pinpoint marker, including "state" — a polygon tint
+          // alone is invisible for tiny union territories like Lakshadweep or Chandigarh,
+          // so the marker is what actually shows the user where the right answer was.
+          revealLocation: showFeedbackCard ? displayedQuestion : null,
           userClickPoint: showFeedbackCard ? displayedResult.clickPoint : null,
           ariaLabel: "Map of India",
         }}

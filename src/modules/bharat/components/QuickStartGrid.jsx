@@ -19,7 +19,7 @@ export default function QuickStartGrid({ onSelect }) {
             aria-label={item.label}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
-            className="flex flex-col items-center gap-1.5 rounded-2xl border border-line bg-surface-raised px-4 py-6 text-center shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/5"
+            className="flex flex-col items-center gap-1.5 rounded-lg border border-line bg-surface-raised px-4 py-6 text-center shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/5"
           >
             <span className="text-3xl" aria-hidden>
               {item.emoji}

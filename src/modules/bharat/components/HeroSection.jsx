@@ -5,11 +5,8 @@ export default function HeroSection({ onStartPracticing, onBrowseTopics }) {
   return (
     <section className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-6 py-12 lg:grid-cols-2 lg:gap-14 lg:py-20">
       <div className="text-center lg:text-left">
-        <p className="mx-auto mb-4 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600 lg:mx-0 dark:bg-brand-500/15 dark:text-brand-300">
-          Free forever · No login · No signup
-        </p>
-        <h1 className="font-display text-4xl font-bold leading-tight text-ink sm:text-5xl dark:text-white">
-          Bharat Atlas
+        <h1 className="flex items-center justify-center gap-3 font-display text-4xl font-bold leading-tight text-ink sm:text-5xl lg:justify-start dark:text-white">
+          <span aria-hidden>🇮🇳</span> Bharat Atlas
         </h1>
         <p className="mt-4 font-display text-lg font-medium text-ink sm:text-xl dark:text-white/90">
           Master Indian Geography through Interactive Map Practice.
@@ -23,16 +20,16 @@ export default function HeroSection({ onStartPracticing, onBrowseTopics }) {
           <button
             type="button"
             onClick={onStartPracticing}
-            className="w-full rounded-full bg-brand-500 px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 sm:w-auto"
+            className="w-full rounded-lg bg-brand-500 px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-brand-600 sm:w-auto"
           >
-            Start Practicing
+            Start Random Practice
           </button>
           <button
             type="button"
             onClick={onBrowseTopics}
-            className="w-full rounded-full border border-line px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-raised sm:w-auto dark:border-white/15 dark:text-white dark:hover:bg-white/10"
+            className="w-full rounded-lg border border-line px-7 py-3.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-raised sm:w-auto dark:border-white/15 dark:text-white dark:hover:bg-white/10"
           >
-            Browse All Topics
+            Browse Topics
           </button>
         </div>
       </div>

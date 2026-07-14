@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", system-ui, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Lexend", "Inter", system-ui, sans-serif;
+
+  --color-surface: #f7f7f5;
+  --color-surface-raised: #ffffff;
+  --color-ink: #14161a;
+  --color-ink-muted: #5b616e;
+  --color-line: #e3e4e2;
+
+  --color-brand-50: #eef6ff;
+  --color-brand-100: #d9ecff;
+  --color-brand-400: #4f8ff0;
+  --color-brand-500: #2f6fe0;
+  --color-brand-600: #2255b8;
+  --color-brand-700: #1c4491;
+
+  --color-correct: #1f9d5a;
+  --color-correct-bg: #e6f8ee;
+  --color-wrong: #d9432e;
+  --color-wrong-bg: #fdeae7;
+
+  /* One accent per topic category — gives the homepage real visual rhythm instead of a
+     single repeated blue, and lets a user learn "amber = economy" at a glance. */
+  --color-cat-physical: #0284c7;
+  --color-cat-physical-bg: #e0f2fe;
+  --color-cat-political: #4f46e5;
+  --color-cat-political-bg: #e6e4fd;
+  --color-cat-environment: #059669;
+  --color-cat-environment-bg: #d3f5e6;
+  --color-cat-economic: #c2760a;
+  --color-cat-economic-bg: #fbecd0;
+  --color-cat-heritage: #be123c;
+  --color-cat-heritage-bg: #fce0e6;
+}
+
+:root {
+  color-scheme: light;
+  --color-map-bg: #eaf1fb;
+  --color-map-default: #dbe4f3;
+  --color-map-hover: #c3d3ec;
+  --color-map-pressed: #a9c0e5;
+  --color-map-stroke: #ffffff;
+  --color-route-halo: rgba(255, 255, 255, 0.95);
+}
+
+:root.dark {
+  color-scheme: dark;
+  --color-map-bg: #10141d;
+  --color-map-default: #26314a;
+  --color-map-hover: #32405f;
+  --color-map-pressed: #3d4d70;
+  --color-map-stroke: #0b0d12;
+  --color-route-halo: rgba(6, 8, 12, 0.85);
+
+  --color-cat-physical: #38bdf8;
+  --color-cat-physical-bg: rgba(56, 189, 248, 0.12);
+  --color-cat-political: #a5b4fc;
+  --color-cat-political-bg: rgba(129, 140, 248, 0.14);
+  --color-cat-environment: #34d399;
+  --color-cat-environment-bg: rgba(52, 211, 153, 0.12);
+  --color-cat-economic: #fbbf24;
+  --color-cat-economic-bg: rgba(251, 191, 36, 0.12);
+  --color-cat-heritage: #fb7185;
+  --color-cat-heritage-bg: rgba(251, 113, 133, 0.12);
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.dark body {
+  background-color: #0b0d12;
+  color: #e7e9ee;
+}
+
+/* Vertically centers a short answer panel in the sidebar instead of leaving it pinned to
+   the top with dead space below — but "safe" means it falls back to top-aligned instead
+   of clipping the start of a tall FeedbackCard when content doesn't fit the viewport. */
+@media (min-width: 1024px) {
+  .panel-center-safe {
+    display: flex;
+    flex-direction: column;
+    justify-content: safe center;
+  }
+}

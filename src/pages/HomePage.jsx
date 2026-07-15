@@ -35,6 +35,10 @@ export default function HomePage({ onSelectBharat, onSelectBihar }) {
             Somewhere, a map question is waiting to decide your rank. Practice it here first —
             free, forever, no login required.
           </p>
+          <p className="mx-auto mt-2 max-w-lg text-xs text-ink-muted/80 sm:text-sm dark:text-white/40">
+            Indian map practice and Bihar map practice on one interactive Indian atlas — states,
+            districts, rivers, mountains and capitals.
+          </p>
         </div>
 
         <div className="grid w-full grid-cols-1 gap-5 sm:grid-cols-2">
@@ -52,7 +56,7 @@ export default function HomePage({ onSelectBharat, onSelectBihar }) {
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-3xl dark:bg-brand-500/15">
               🇮🇳
             </span>
-            <span className="font-display text-xl font-semibold text-ink dark:text-white">Bharat Atlas</span>
+            <h2 className="font-display text-xl font-semibold text-ink dark:text-white">Bharat Atlas</h2>
             <span className="text-sm text-ink-muted dark:text-white/60">
               Fully functional — practice mountains, rivers, states, capitals, forests, minerals, UNESCO
               sites and much more across 19 map modes.
@@ -76,7 +80,7 @@ export default function HomePage({ onSelectBharat, onSelectBihar }) {
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-correct-bg text-3xl dark:bg-correct/15">
               🌾
             </span>
-            <span className="font-display text-xl font-semibold text-ink dark:text-white">Bihar Atlas</span>
+            <h2 className="font-display text-xl font-semibold text-ink dark:text-white">Bihar Atlas</h2>
             <span className="text-sm text-ink-muted dark:text-white/60">
               All 38 districts and 9 divisions ready to practice now — rivers, protected areas,
               heritage sites and more for BPSC prep are on the way.

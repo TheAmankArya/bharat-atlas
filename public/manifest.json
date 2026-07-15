@@ -1,0 +1,17 @@
+{
+  "name": "Atlas Platform — Bharat Atlas & Bihar Atlas",
+  "short_name": "Atlas Platform",
+  "description": "Free, no-login interactive map practice for UPSC, BPSC, State PSC, SSC, CDS, CAPF and NDA aspirants.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#2f6fe0",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

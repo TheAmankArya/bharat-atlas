@@ -67,7 +67,7 @@ export default function HomePage({ onSelectBharat, onSelectBihar }) {
             onClick={onSelectBihar}
             whileHover={{ y: -3 }}
             whileTap={{ scale: 0.98 }}
-            className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-3xl border border-dashed border-line bg-surface-raised p-7 text-left opacity-90 shadow-sm transition-shadow hover:shadow-md dark:border-white/15 dark:bg-white/5"
+            className="group relative flex flex-col items-start gap-3 overflow-hidden rounded-3xl border border-line bg-surface-raised p-7 text-left shadow-sm transition-shadow hover:shadow-md dark:border-white/10 dark:bg-white/5"
           >
             <span
               className="absolute inset-x-0 top-0 h-1.5 bg-correct transition-opacity group-hover:opacity-100"
@@ -78,11 +78,11 @@ export default function HomePage({ onSelectBharat, onSelectBihar }) {
             </span>
             <span className="font-display text-xl font-semibold text-ink dark:text-white">Bihar Atlas</span>
             <span className="text-sm text-ink-muted dark:text-white/60">
-              Interactive Bihar-specific preparation for BPSC including Geography, History, Economy,
-              Culture, District Explorer and Current Affairs.
+              All 38 districts and 9 divisions ready to practice now — rivers, protected areas,
+              heritage sites and more for BPSC prep are on the way.
             </span>
-            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs font-semibold text-ink-muted dark:bg-white/10 dark:text-white/50">
-              Coming Soon
+            <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-correct-bg px-3 py-1 text-xs font-semibold text-correct dark:bg-correct/15">
+              ● In Progress
             </span>
           </motion.button>
         </div>

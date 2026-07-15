@@ -1,61 +1,147 @@
-import AppShell from "../../components/layout/AppShell";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import GameScreen from "./components/GameScreen";
+import ChallengeScreen from "./components/ChallengeScreen";
+import HomeScreen from "./components/HomeScreen";
+import DistrictExplorerPage from "./components/districtExplorer/DistrictExplorerPage";
+import DistrictDetailPage from "./components/districtExplorer/DistrictDetailPage";
+import StatsDashboard from "../../components/game/StatsDashboard";
+import ExploreOverlay from "../../components/search/ExploreOverlay";
+import { MODES } from "./engine/modes";
+import { getState } from "./engine/storage";
+import { BIHAR_MAP_GEO, withRevealPath } from "./engine/geo";
+import { search } from "../../data/bihar";
 
-const PLANNED_SECTIONS = [
-  { emoji: "🗺️", label: "Geography" },
-  { emoji: "📜", label: "History" },
-  { emoji: "🌾", label: "Economy" },
-  { emoji: "🎭", label: "Culture" },
-  { emoji: "📍", label: "District Explorer" },
-  { emoji: "📰", label: "Current Affairs" },
-];
+const FADE = { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.15 } };
+
+const CATEGORY_LABELS = {
+  district: "District",
+  division: "Division",
+  river: "River",
+  hill: "Hill",
+  plateau: "Plateau",
+  waterfall: "Waterfall",
+  dam: "Dam",
+  barrage: "Barrage",
+  canal: "Canal",
+  wetland: "Wetland",
+  soil: "Soil region",
+  "protected-area": "Protected area",
+  heritage: "Heritage site",
+  resource: "Resource",
+};
 
 /**
- * Bihar Atlas — intentionally a placeholder only, per the current scope: no real content,
- * no data, no quiz modes. When Bihar Atlas is actually built, it plugs in here exactly the
- * way Bharat Atlas does (its own engine/, hooks/, components/, and data/bihar dataset) —
- * nothing in Bharat Atlas or the shared components needs to change to support it.
+ * Bihar Atlas, fully self-contained: owns its own routing (home/game/challenge/district
+ * explorer), its own search + stats modals (wired to its own data/engine), and its own
+ * progress storage. Mirrors src/modules/bharat/BharatApp.jsx's exact shape, extended with
+ * two Bihar-only launch types (`explorer`, `district`) for the District Explorer feature.
+ * `onExit` returns to the top-level atlas picker — nothing else here reaches outside this
+ * module's own folder except the generic, module-agnostic pieces under src/components.
  */
 export default function BiharApp({ onExit }) {
+  // null = Bihar home. Otherwise one of:
+  //   { type: "mode", modeId, topicFilter, title }      — a plain or topic-narrowed mode
+  //   { type: "challenge", questions, title, modeId }    — a finite, ordered question set
+  //   { type: "explorer" }                               — District Explorer (map + grid)
+  //   { type: "district", district }                     — a single district's detail page
+  const [launch, setLaunch] = useState(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchInitialLocation, setSearchInitialLocation] = useState(null);
+  const [statsOpen, setStatsOpen] = useState(false);
+
+  const openSearch = () => {
+    setSearchInitialLocation(null);
+    setSearchOpen(true);
+  };
+  const openSearchWithLocation = (location) => {
+    setSearchInitialLocation(location);
+    setSearchOpen(true);
+  };
+  const openStats = () => setStatsOpen(true);
+  const goHome = () => setLaunch(null);
+  const openExplorer = () => setLaunch({ type: "explorer" });
+  const openDistrict = (district) => setLaunch({ type: "district", district });
+
+  const launchTopic = (topic) =>
+    setLaunch({
+      type: "mode",
+      modeId: topic.modeId,
+      topicFilter: { subcategory: topic.subcategory, tag: topic.tag },
+      title: topic.label,
+    });
+
+  const handleQuickStart = (key) => {
+    if (key === "mixed") setLaunch({ type: "mode", modeId: "mixed", topicFilter: null, title: null });
+    // "topic"/"explorer"/"search" are handled inside HomeScreen itself and never reach here.
+  };
+
   return (
-    <AppShell onBack={onExit} backLabel="Back to atlas selection" brandName="Bihar Atlas" onNavigateHome={onExit}>
-      <div className="mx-auto flex h-full max-w-2xl flex-col items-center justify-center gap-5 px-6 text-center">
-        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-correct-bg text-4xl dark:bg-correct/15" aria-hidden>
-          🌾
-        </span>
-        <div>
-          <p className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-600 dark:bg-brand-500/15 dark:text-brand-300">
-            Coming Soon
-          </p>
-          <h1 className="font-display text-3xl font-bold text-ink dark:text-white">Bihar Atlas</h1>
-        </div>
-        <p className="max-w-lg text-sm text-ink-muted sm:text-base dark:text-white/60">
-          Interactive Bihar-specific preparation for BPSC including Geography, History, Economy,
-          Culture, District Explorer and Current Affairs.
-        </p>
-
-        <div className="flex flex-wrap justify-center gap-2 pt-2">
-          {PLANNED_SECTIONS.map((section) => (
-            <span
-              key={section.label}
-              className="inline-flex items-center gap-1.5 rounded-full border border-dashed border-line px-3 py-1.5 text-xs text-ink-muted dark:border-white/15 dark:text-white/40"
-            >
-              <span aria-hidden>{section.emoji}</span>
-              {section.label}
-              <span className="rounded-full bg-surface px-1.5 py-0.5 text-[10px] font-medium dark:bg-white/10">
-                Soon
-              </span>
-            </span>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={onExit}
-          className="mt-4 rounded-full bg-brand-500 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-600"
-        >
-          ← Back to Atlas Home
-        </button>
+    <>
+      <div className="relative h-screen w-full overflow-hidden">
+        <AnimatePresence mode="wait">
+          {!launch ? (
+            <motion.div key="home" className="absolute inset-0" {...FADE}>
+              <HomeScreen
+                onSelectTopic={launchTopic}
+                onQuickStart={handleQuickStart}
+                onSelectSearchResult={openSearchWithLocation}
+                onOpenSearch={openSearch}
+                onOpenStats={openStats}
+                onOpenDistrictExplorer={openExplorer}
+                onNavigateHome={onExit}
+              />
+            </motion.div>
+          ) : launch.type === "mode" ? (
+            <motion.div key="game" className="absolute inset-0" {...FADE}>
+              <GameScreen
+                modeId={launch.modeId}
+                topicFilter={launch.topicFilter}
+                title={launch.title}
+                onBack={goHome}
+                onOpenSearch={openSearch}
+                onOpenStats={openStats}
+                onNavigateHome={onExit}
+              />
+            </motion.div>
+          ) : launch.type === "explorer" ? (
+            <motion.div key="explorer" className="absolute inset-0" {...FADE}>
+              <DistrictExplorerPage onSelectDistrict={openDistrict} onBack={goHome} onNavigateHome={onExit} />
+            </motion.div>
+          ) : launch.type === "district" ? (
+            <motion.div key="district" className="absolute inset-0" {...FADE}>
+              <DistrictDetailPage
+                district={launch.district}
+                onSelectDistrict={openDistrict}
+                onPractice={() => setLaunch({ type: "mode", modeId: "district", topicFilter: null, title: null })}
+                onBack={openExplorer}
+                onNavigateHome={onExit}
+              />
+            </motion.div>
+          ) : (
+            <motion.div key="challenge" className="absolute inset-0" {...FADE}>
+              <ChallengeScreen
+                questions={launch.questions}
+                modeId={launch.modeId}
+                title={launch.title}
+                onBack={goHome}
+                onNavigateHome={onExit}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </AppShell>
+
+      <ExploreOverlay
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        initialLocation={searchInitialLocation}
+        search={search}
+        mapGeo={BIHAR_MAP_GEO}
+        categoryLabels={CATEGORY_LABELS}
+        withRevealPath={withRevealPath}
+      />
+      <StatsDashboard open={statsOpen} onClose={() => setStatsOpen(false)} modes={MODES} getState={getState} />
+    </>
   );
 }

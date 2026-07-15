@@ -34,9 +34,20 @@ function OptionGroup({ label, options, value, onSelect }) {
   );
 }
 
-export default function FilterPanel({ filters, onChange, poolSize, difficulties = DEFAULT_DIFFICULTIES, regions = DEFAULT_REGIONS }) {
+export default function FilterPanel({
+  filters,
+  onChange,
+  poolSize,
+  difficulties = DEFAULT_DIFFICULTIES,
+  regions = DEFAULT_REGIONS,
+  // Lets a module swap the second filter dimension entirely (e.g. Bihar's real divisions
+  // in place of Bharat's north/south/east/west macro-regions) without duplicating this
+  // component — defaults exactly preserve Bharat's existing "region" behavior.
+  secondaryFilterKey = "region",
+  secondaryFilterLabel = "Region",
+}) {
   const [open, setOpen] = useState(false);
-  const activeCount = (filters.difficulty ? 1 : 0) + (filters.region ? 1 : 0);
+  const activeCount = (filters.difficulty ? 1 : 0) + (filters[secondaryFilterKey] ? 1 : 0);
   const difficultyOptions = toOptions(difficulties);
   const regionOptions = toOptions(regions, (v) => (v === "northeast" ? "Northeast" : v[0].toUpperCase() + v.slice(1)));
 
@@ -86,10 +97,10 @@ export default function FilterPanel({ filters, onChange, poolSize, difficulties 
                 onSelect={(difficulty) => onChange({ difficulty })}
               />
               <OptionGroup
-                label="Region"
+                label={secondaryFilterLabel}
                 options={regionOptions}
-                value={filters.region}
-                onSelect={(region) => onChange({ region })}
+                value={filters[secondaryFilterKey]}
+                onSelect={(value) => onChange({ [secondaryFilterKey]: value })}
               />
               <p className="border-t border-line pt-3 text-xs text-ink-muted dark:border-white/10 dark:text-white/50">
                 {poolSize} location{poolSize === 1 ? "" : "s"} match

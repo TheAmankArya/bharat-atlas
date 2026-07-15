@@ -3,8 +3,6 @@ import { ComposableMap, ZoomableGroup, Geographies, Geography, Marker } from "re
 import { geoPath, geoCentroid } from "d3-geo";
 import { motion } from "framer-motion";
 
-const DEFAULT_ZOOM_STATE = { center: [82.8, 22.5], zoom: 1 };
-
 // Below this rendered size (in the projection's own viewBox units), a fill color has no
 // visible pixels to show at all — e.g. Lakshadweep projects to ~0.86 x 0.3 units on
 // Bharat's map, versus its next-smallest neighbor Chandigarh at ~3.2 x 2.3 (small, but a
@@ -43,9 +41,13 @@ export default function MapCanvas({
   const { getStateFeatures, projection, width, height } = mapGeo;
   const svgRef = useRef(null);
   const zoomedGroupRef = useRef(null);
-  const [zoomState, setZoomState] = useState(
-    focusCenter ? { center: focusCenter, zoom: focusZoom ?? 4 } : DEFAULT_ZOOM_STATE
-  );
+  // Default center is derived from the projection itself (the geographic point at the
+  // middle of its own fitted viewBox), not hardcoded — a projection fit to Bihar centers
+  // on Bihar, one fit to India centers on India, with zero per-module configuration.
+  const [zoomState, setZoomState] = useState(() => {
+    if (focusCenter) return { center: focusCenter, zoom: focusZoom ?? 4 };
+    return { center: projection.invert([width / 2, height / 2]), zoom: 1 };
+  });
   // Same projection MapCanvas already renders with, so a traced course (e.g. a river's
   // `path`) lines up exactly with the boundaries and markers — no separate coordinate math.
   const pathGenerator = useMemo(() => geoPath(projection), [projection]);

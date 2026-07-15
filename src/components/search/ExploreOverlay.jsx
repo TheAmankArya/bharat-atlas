@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+  import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import MapCanvas from "../map/MapCanvas";
 
@@ -106,7 +106,7 @@ export default function ExploreOverlay({
                       mapGeo={mapGeo}
                       focusCenter={[selected.coordinates.lng, selected.coordinates.lat]}
                       focusZoom={selected.category === "state" ? 2.2 : 4}
-                      highlightStateNames={selected.states}
+                      highlightStateNames={selected.states ?? selected.districts}
                       highlightStatus="correct"
                       revealLocation={withRevealPath(selected)}
                     />
@@ -134,7 +134,7 @@ export default function ExploreOverlay({
                         <span className="font-medium text-ink dark:text-white">{loc.name}</span>
                         <span className="text-xs text-ink-muted dark:text-white/50">
                           {categoryLabels[loc.category] ?? loc.category}
-                          {loc.states?.[0] && ` · ${loc.states[0]}`}
+                          {(loc.states ?? loc.districts)?.[0] && ` · ${(loc.states ?? loc.districts)[0]}`}
                         </span>
                       </button>
                     </li>

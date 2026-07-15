@@ -11,7 +11,14 @@ import { motion } from "framer-motion";
  */
 export default function FeedbackCard({ location, isCorrect, onNext, getByIds = () => [], onPrevious, isReviewing = false }) {
   if (!location) return null;
-  const related = getByIds(location.relatedIds ?? []);
+  // Bharat's locations carry `states`/`relatedIds`/`pyq`; Bihar's carry `districts`/
+  // `relatedTopics`/`futurePYQs` instead (different real-world concept, same shape) — a
+  // location only ever has one side of each pair populated, so this fallback needs no
+  // per-module prop and never changes Bharat's own behavior.
+  const regionTags = location.states ?? location.districts ?? [];
+  const relatedIds = location.relatedIds ?? location.relatedTopics ?? [];
+  const pastQuestions = location.pyq ?? location.futurePYQs ?? [];
+  const related = getByIds(relatedIds);
 
   return (
     <motion.div
@@ -45,7 +52,7 @@ export default function FeedbackCard({ location, isCorrect, onNext, getByIds = (
       <p className="text-sm text-ink-muted dark:text-white/70">{location.description}</p>
 
       <div className="flex flex-wrap gap-2 text-xs text-ink-muted dark:text-white/50">
-        {location.states.map((s) => (
+        {regionTags.map((s) => (
           <span key={s} className="rounded-full bg-surface px-2.5 py-1 dark:bg-white/10">
             {s}
           </span>
@@ -64,10 +71,10 @@ export default function FeedbackCard({ location, isCorrect, onNext, getByIds = (
         </div>
       )}
 
-      {location.pyq?.length > 0 && (
+      {pastQuestions.length > 0 && (
         <div className="text-sm text-ink-muted dark:text-white/60">
           <span className="font-medium text-ink dark:text-white">Previously asked: </span>
-          {location.pyq.map((p) => `${p.exam} ${p.year}`).join(", ")}
+          {pastQuestions.map((p) => `${p.exam} ${p.year}`).join(", ")}
         </div>
       )}
 
